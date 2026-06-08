@@ -56,6 +56,11 @@ app.all('*', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 System ready on port: ${PORT}`);
-});
+// Agar Vercel par ho toh export karein, local ho toh listen karein
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`🚀 System ready on port: ${PORT}`);
+    });
+}
+
+module.exports = app; // Yeh Vercel ke liye zaroori hai
