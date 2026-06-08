@@ -22,8 +22,8 @@ app.use((req, res, next) => {
 
 // 2. Base Route (Check karne ke liye ke server zinda hai ya nahi)
 app.get('/', (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.status(200).json({ status: "online", message: "Aapka system chal raha hai!" });
+    // Bilkul simple text response taake client crash na ho
+    res.status(200).send("online");
 });
 
 // 3. Catch-All Route (Taqay Google Bind ya koi bhi random URL aaye toh error na ho)
