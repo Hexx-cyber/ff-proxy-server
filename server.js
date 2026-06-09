@@ -2,17 +2,18 @@ const express = require('express');
 const app = express();
 
 app.all('/ver.php', (req, res) => {
-    console.log("Request Method:", req.method); // Yeh check karna zaroori hai
+    // Game ko lagna chahiye ki ye official API response hai
+    res.setHeader('Content-Type', 'application/json');
     
-    // Header spoofing
-    res.setHeader('Server', 'Apache');
-    res.setHeader('Content-Type', 'text/plain');
-    
-    // Fake config response
-    res.status(200).send("version=1.123.17&update=false&url=https://ff.garena.com");
-});
+    const mockResponse = {
+        "version": "1.123.17",
+        "update": false,
+        "url": "https://ff.garena.com",
+        "maintenance": false
+    };
 
-// Root path handling
-app.get('/', (req, res) => res.status(200).send("Proxy Active"));
+    console.log("Sending JSON response for ver.php");
+    return res.status(200).json(mockResponse);
+});
 
 module.exports = app;
