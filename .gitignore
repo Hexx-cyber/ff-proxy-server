@@ -1,0 +1,21 @@
+# Node modules (Sabse zaruri - ise kabhi upload na karein)
+node_modules/
+
+# Environment files (Sensitive keys aur tokens ke liye - ise kabhi upload na karein)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs (Server logs)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files (Operating system ki hidden files)
+.DS_Store
+Thumbs.db
+
+# Vercel specific (Agar zarurat ho)
+.vercel/
