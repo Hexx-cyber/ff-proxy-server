@@ -2,34 +2,31 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 
-app.use(express.json());
-
-// Main Proxy Route
 app.all('*', async (req, res) => {
-    // Ye domain change karke dekhein, zyadatar yahi use hoti hai
+    // 1. Garena Domain - Ensure karein ki ye target sahi hai
     const TARGET_SERVER = "https://api.freefiremobile.com"; 
-    
-    // Path ensure karein ki / se start ho
-    const path = req.url || '/';
-    const fullUrl = `${TARGET_SERVER}${path}`;
+    const fullUrl = `${TARGET_SERVER}${req.url}`;
 
     try {
+        // Logging for Debugging
+        console.log(`[PROXY] ${req.method} request to: ${fullUrl}`);
+
         const response = await axios({
             method: req.method,
             url: fullUrl,
             headers: { 
-                ...req.headers, 
-                host: 'api.freefiremobile.com' 
+                ...req.headers,
+                'host': 'api.freefiremobile.com' 
             },
-            data: req.method !== 'GET' ? req.body : undefined,
-            validateStatus: () => true 
+            data: req.body,
+            validateStatus: () => true // Har status code accept karein
         });
 
-        // Response wapas bhejein
+        // Copy headers and status back to client
         res.status(response.status).set(response.headers).send(response.data);
     } catch (error) {
-        console.error("Proxy Error:", error.message);
-        res.status(502).send("Proxy Error");
+        console.error("[PROXY ERROR]", error.message);
+        res.status(502).send("Proxy Gateway Error");
     }
 });
 
