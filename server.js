@@ -3,7 +3,11 @@ const axios = require('axios');
 const app = express();
 
 app.all('*', async (req, res) => {
-    const TARGET_SERVER = "https://api.freefiremobile.com";
+    // Agar humein domain nahi pata, toh hum request ke host header se domain nikal sakte hain
+    // Lekin Garena ke liye humein hardcoded domain chahiye hogi
+    const TARGET_SERVER = "https://ff.garena.com"; 
+    
+    // Sirf path ka use karein
     const fullUrl = `${TARGET_SERVER}${req.url}`;
 
     try {
@@ -12,19 +16,16 @@ app.all('*', async (req, res) => {
             url: fullUrl,
             headers: {
                 ...req.headers,
-                'host': 'api.freefiremobile.com',
-                'User-Agent': 'UnityPlayer/2022.3.47f1 (UnityWebRequest/1.0, libcurl/7.84.0-DEV)',
-                'Accept-Encoding': 'identity'
+                'host': 'ff.garena.com'
             },
             data: req.body,
-            timeout: 10000,
             validateStatus: () => true
         });
-
         res.status(response.status).set(response.headers).send(response.data);
     } catch (error) {
-        console.error("DEBUG ERROR:", error.message);
-        res.status(502).send("Proxy Gateway Error: " + error.message);
+        // Agar DNS error aata hai, toh log mein yahan dikhega
+        console.error("DNS/Connection Error:", error.code);
+        res.status(502).send("Error: " + error.message);
     }
 });
 
