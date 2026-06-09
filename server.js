@@ -2,14 +2,18 @@ const express = require('express');
 const app = express();
 
 app.all('*', (req, res) => {
-    // Agar game version check maang raha hai
+    // 1. Version Check Interception
     if (req.url.includes('/ver.php')) {
         console.log("Captured version check request!");
-        // Yeh ek "Fake" success response hai
-        return res.status(200).send("version=1.123.17&update=false");
+        // Ye response game ke structure ke zyada kareeb hai
+        return res.status(200).send("version=1.123.17&update=false&url=https://ff.garena.com");
     }
 
-    // Baaki sab requests ke liye filhal 404
+    // 2. Mocking other required endpoints (jo game login ke waqt maangta hai)
+    if (req.url.includes('/api/article/list')) {
+        return res.status(200).json({ "article_list": [] });
+    }
+
     res.status(404).send("Not Found");
 });
 
