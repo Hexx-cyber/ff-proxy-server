@@ -3,30 +3,28 @@ const axios = require('axios');
 const app = express();
 
 app.all('*', async (req, res) => {
-    // 1. Garena Domain - Ensure karein ki ye target sahi hai
-    const TARGET_SERVER = "https://api.freefiremobile.com"; 
+    const TARGET_SERVER = "https://api.freefiremobile.com";
     const fullUrl = `${TARGET_SERVER}${req.url}`;
 
     try {
-        // Logging for Debugging
-        console.log(`[PROXY] ${req.method} request to: ${fullUrl}`);
-
         const response = await axios({
             method: req.method,
             url: fullUrl,
-            headers: { 
+            headers: {
                 ...req.headers,
-                'host': 'api.freefiremobile.com' 
+                'host': 'api.freefiremobile.com',
+                'User-Agent': 'UnityPlayer/2022.3.47f1 (UnityWebRequest/1.0, libcurl/7.84.0-DEV)',
+                'Accept-Encoding': 'identity'
             },
             data: req.body,
-            validateStatus: () => true // Har status code accept karein
+            timeout: 10000,
+            validateStatus: () => true
         });
 
-        // Copy headers and status back to client
         res.status(response.status).set(response.headers).send(response.data);
     } catch (error) {
-        console.error("[PROXY ERROR]", error.message);
-        res.status(502).send("Proxy Gateway Error");
+        console.error("DEBUG ERROR:", error.message);
+        res.status(502).send("Proxy Gateway Error: " + error.message);
     }
 });
 
