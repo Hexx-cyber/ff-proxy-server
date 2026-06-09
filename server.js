@@ -2,40 +2,35 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 
-app.use(express.json());
-
 app.all('*', async (req, res) => {
-    // Favicon fix: Agar browser favicon mangta hai, toh use empty response dein
+    // 1. Favicon handle karein taaki Garena ka official logo wapas aa jaye
     if (req.url === '/favicon.ico') {
-        return res.status(204).end();
+        return res.redirect('https://ff.garena.com/favicon.ico');
     }
 
     const TARGET_SERVER = "https://ff.garena.com";
     const fullUrl = `${TARGET_SERVER}${req.url}`;
 
     try {
+        // 2. Real Game Client ke Headers spoof karein
         const response = await axios({
             method: req.method,
             url: fullUrl,
-            headers: { 
-                ...req.headers, 
-                host: 'ff.garena.com' 
+            headers: {
+                'Host': 'ff.garena.com',
+                'User-Agent': 'UnityPlayer/2022.3.47f1 (UnityWebRequest/1.0, libcurl/7.84.0-DEV)',
+                'Accept': '*/*',
+                'Connection': 'keep-alive',
+                'X-Unity-Version': '2022.3.47f1'
             },
-            data: req.body,
-            validateStatus: () => true 
+            data: req.method !== 'GET' ? req.body : undefined,
+            validateStatus: () => true, // 404/500 ko block na kare
+            timeout: 10000 
         });
 
-        // Data Modification (Modify logic yahan dalein)
-        let modifiedData = response.data;
-        
-        // Agar response JSON hai toh edit karein
-        if (typeof modifiedData === 'object') {
-            modifiedData.proxy_modified = true;
-        }
-
-        res.status(response.status).set(response.headers).send(modifiedData);
+        res.status(response.status).set(response.headers).send(response.data);
     } catch (error) {
-        console.error("Proxy Error:", error.message);
+        console.error("PROXY CRASH:", error.message);
         res.status(502).send("Proxy Gateway Error");
     }
 });
