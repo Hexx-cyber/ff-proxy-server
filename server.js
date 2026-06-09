@@ -1,35 +1,41 @@
 const express = require('express');
-const helmet = require('helmet'); // Security headers ke liye
-const rateLimit = require('express-rate-limit'); // Abuse rokne ke liye
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+
 const app = express();
 
-// Security Middleware
-app.use(helmet()); 
+// 1. Security Headers (Helmet)
+app.use(helmet());
 
-// Rate Limiter: 15 minute mein sirf 100 requests
+// 2. CORS Policy (Only allow trusted traffic)
+app.use(cors());
+
+// 3. Rate Limiter (Protection against flood attacks)
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: "Too many requests, please try again later."
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Ek IP se max 100 requests
+    message: { error: "Too many requests, slow down!" }
 });
 app.use(limiter);
 
-app.use(express.json());
+app.use(bodyParser.json());
 
-// Main Proxy Logic (Professional Structure)
-app.all('*', async (req, res) => {
-    // 1. Authentication Check (Professional touch)
-    const authHeader = req.headers['authorization'];
-    if (authHeader !== 'MySecretToken') {
-        return res.status(403).json({ error: "Unauthorized access" });
-    }
-
-    // 2. Version Check Logic
+// 4. Professional Routing Logic
+app.all('*', (req, res) => {
+    
+    // Version Check Logic
     if (req.url.includes('/ver.php')) {
         return res.status(200).send("version=1.123.17&update=false&url=https://ff.garena.com&patch=false&info=success");
     }
 
-    res.status(200).json({ status: "success", received: req.method });
+    // Safety: Har request ko log karna (Internal purpose ke liye)
+    // Professional servers hamesha record rakhte hain
+    console.log(`Incoming request: ${req.method} ${req.url} from ${req.ip}`);
+
+    // Default Response
+    res.status(200).json({ status: "success", timestamp: new Date().toISOString() });
 });
 
 module.exports = app;
