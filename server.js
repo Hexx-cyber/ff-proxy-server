@@ -3,22 +3,31 @@ const axios = require('axios');
 const app = express();
 
 app.all('*', async (req, res) => {
-    // Ye rahi Garena ki official API domain
+    // 1. Apne target domain ko yahan rakhein
     const TARGET_SERVER = "https://ff.garena.com"; 
-    const url = `${TARGET_SERVER}${req.url}`;
     
+    // 2. URL check karein (agar req.url undefined ho, toh / se replace karein)
+    const path = req.url || '/';
+    const fullUrl = `${TARGET_SERVER}${path}`;
+
     try {
+        console.log(`Forwarding to: ${fullUrl}`);
+
         const response = await axios({
             method: req.method,
-            url: url,
-            params: req.query, // Search params pass karne ke liye
+            url: fullUrl,
+            headers: {
+                ...req.headers,
+                host: 'ff.garena.com' // Host header ko sahi karna zaroori hai
+            },
             data: req.body,
-            headers: { ...req.headers, host: 'ff.garena.com' }
+            validateStatus: () => true 
         });
+
         res.status(response.status).send(response.data);
     } catch (error) {
-        console.error("Forwarding Error:", error.message);
-        res.status(502).send("Forwarding Failed");
+        console.error("Proxy Error:", error.message);
+        res.status(500).send("Server Error: " + error.message);
     }
 });
 
