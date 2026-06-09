@@ -1,17 +1,27 @@
 const express = require('express');
+const axios = require('axios');
 const app = express();
 
-app.all('*', (req, res) => {
-    // 1. Version Check Handling
-    if (req.url.includes('/ver.php')) {
-        console.log("Responding to version check...");
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        // Kuch games version string ke aage dummy data expect karte hain
-        return res.status(200).send("version=1.123.17&update=false&url=https://ff.garena.com&patch=false&info=success");
-    }
+app.all('*', async (req, res) => {
+    try {
+        // Garena ka real server URL
+        const TARGET = "https://ff.garena.com"; 
+        
+        const response = await axios({
+            method: req.method,
+            url: `${TARGET}${req.url}`,
+            headers: {
+                ...req.headers,
+                'Host': 'ff.garena.com' // Ye header bahut important hai
+            },
+            data: req.method !== 'GET' ? req.body : undefined,
+            validateStatus: () => true 
+        });
 
-    // 2. Default response (Silent fail)
-    res.status(200).send("{}");
+        res.status(response.status).set(response.headers).send(response.data);
+    } catch (err) {
+        res.status(502).send("Proxy error: " + err.message);
+    }
 });
 
 module.exports = app;
