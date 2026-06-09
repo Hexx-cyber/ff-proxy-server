@@ -4,34 +4,32 @@ const app = express();
 
 app.use(express.json());
 
+// Main Proxy Route
 app.all('*', async (req, res) => {
-    // Garena Domain (Check kar lein agar ye sahi hai)
-    const TARGET_SERVER = "https://ff.garena.com"; 
+    // Ye domain change karke dekhein, zyadatar yahi use hoti hai
+    const TARGET_SERVER = "https://api.freefiremobile.com"; 
     
-    // URL fix: undefined ko handle karna
-    const path = req.originalUrl || req.url || '/';
+    // Path ensure karein ki / se start ho
+    const path = req.url || '/';
     const fullUrl = `${TARGET_SERVER}${path}`;
 
     try {
-        console.log(`Forwarding request to: ${fullUrl}`);
-
         const response = await axios({
             method: req.method,
             url: fullUrl,
-            headers: {
-                ...req.headers,
-                host: 'ff.garena.com', // Original host ko override karna zaroori hai
-                'x-forwarded-for': req.ip 
+            headers: { 
+                ...req.headers, 
+                host: 'api.freefiremobile.com' 
             },
             data: req.method !== 'GET' ? req.body : undefined,
-            validateStatus: () => true, // Garena ke error codes (403, 404) ko handle karne ke liye
-            timeout: 5000 // Timeout 5 second
+            validateStatus: () => true 
         });
 
+        // Response wapas bhejein
         res.status(response.status).set(response.headers).send(response.data);
     } catch (error) {
-        console.error("Proxy Error Details:", error.message);
-        res.status(502).json({ error: "Failed to connect to target server", details: error.message });
+        console.error("Proxy Error:", error.message);
+        res.status(502).send("Proxy Error");
     }
 });
 
