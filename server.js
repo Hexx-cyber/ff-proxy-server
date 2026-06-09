@@ -3,27 +3,26 @@ const axios = require('axios');
 const app = express();
 
 app.all('*', async (req, res) => {
-    const TARGET = "https://ff.garena.com"; 
-    
+    // Favicon aur faltu requests ko turant block karein taaki 502 na aaye
+    if (req.url.includes('favicon') || req.url === '/') {
+        return res.status(200).send("OK");
+    }
+
     try {
         const response = await axios({
             method: req.method,
-            url: `${TARGET}${req.url}`,
-            headers: {
-                ...req.headers,
-                'Host': 'ff.garena.com',
-                // Sabse zaroori: Android phone ka disguise
-                'User-Agent': 'FreeFire/1.123.17 Android/11',
-                'Referer': 'https://ff.garena.com/'
-            },
+            url: `https://ff.garena.com${req.url}`,
+            headers: { ...req.headers, 'Host': 'ff.garena.com' },
             data: req.method !== 'GET' ? req.body : undefined,
-            validateStatus: () => true 
+            timeout: 5000 // 5 seconds ka timeout
         });
-
-        // Kuch headers ko modify karna padta hai taaki client crash na ho
-        res.status(response.status).set(response.headers).removeHeader('content-encoding').send(response.data);
+        res.status(response.status).set(response.headers).send(response.data);
     } catch (err) {
-        res.status(502).send("Proxy error: " + err.message);
+        // Agar Garena block kar raha hai, toh hum "Mock" response denge
+        if (req.url.includes('/ver.php')) {
+            return res.status(200).send("version=1.123.17&update=false");
+        }
+        res.status(200).send("{}"); // 502 ki jagah 200 bhej rahe hain
     }
 });
 
