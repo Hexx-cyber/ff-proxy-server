@@ -28,8 +28,19 @@ app.all('*', async (req, res) => {
 
         res.status(response.status).send(response.data);
     } catch (error) {
-        // Professional Error Handling: Asli error mat dikhao, generic message do
-        res.status(502).json({ error: "Proxy Error: Unable to reach target" });
+        // Vercel Logs mein asli error dekhne ke liye:
+        console.error("Target API Error:", error.message);
+        if (error.response) {
+            console.error("Garena Status:", error.response.status);
+            console.error("Garena Data:", error.response.data);
+        }
+
+        // Screen par bhi detail dikha dein temporarily
+        res.status(error.response?.status || 502).json({ 
+            error: "Proxy Error: Unable to reach target",
+            real_reason: error.message,
+            garena_response: error.response?.data || "No data"
+        });
     }
 });
 
