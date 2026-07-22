@@ -15,10 +15,14 @@ app.all('*', async (req, res) => {
     try {
         const targetUrl = 'https://api.garena.com' + req.url; // Asli endpoint
         
+        // Host header remove karna best practice hai proxy ke liye
+        const headersToForward = { ...req.headers };
+        delete headersToForward.host;
+
         const response = await axios({
             method: req.method,
             url: targetUrl,
-            headers: req.headers, // Client ke headers pass karna zaroori hai
+            headers: headersToForward, 
             data: req.body
         });
 
@@ -29,4 +33,5 @@ app.all('*', async (req, res) => {
     }
 });
 
+// Aakhir mein app ko export kar dein (Sirf ek baar)
 module.exports = app;
