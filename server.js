@@ -11,8 +11,8 @@ app.use(express.json());
 
 app.all('*', async (req, res) => {
     try {
-        // Instagram Graph API Endpoint
-        const targetUrl = 'https://graph.instagram.com' + req.url;
+        // Testing Target (Open Public API)
+        const targetUrl = 'https://jsonplaceholder.typicode.com' + req.url;
         
         const headersToForward = { ...req.headers };
         delete headersToForward.host;
@@ -26,9 +26,9 @@ app.all('*', async (req, res) => {
 
         res.status(response.status).send(response.data);
     } catch (error) {
-        res.status(error.response?.status || 502).json({ 
-            error: "Proxy Error: Unable to reach Instagram API",
-            details: error.response?.data || error.message
+        res.status(502).json({ 
+            error: "Proxy Error: Unable to reach target",
+            message: error.message 
         });
     }
 });
